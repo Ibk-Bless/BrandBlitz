@@ -30,6 +30,40 @@ describe("deposit memo generation", () => {
   });
 });
 
+describe("validateDepositMemo", () => {
+  it("accepts a valid memo with no surrounding whitespace", () => {
+    const memo = "abc123-valid-memo";
+    expect(validateDepositMemo(memo)).toEqual({ valid: true, memo });
+  });
+
+  it("accepts a memo with leading/trailing whitespace and returns trimmed value", () => {
+    const uuid = "550e8400-e29b-41d4-a716-446655440000";
+    const result = validateDepositMemo(`  ${uuid}  `);
+    expect(result).toEqual({ valid: true, memo: uuid });
+  });
+
+  it("rejects null memo with reason 'missing'", () => {
+    expect(validateDepositMemo(null)).toEqual({ valid: false, reason: "missing" });
+  });
+
+  it("rejects whitespace-only memo with reason 'missing'", () => {
+    expect(validateDepositMemo("   ")).toEqual({ valid: false, reason: "missing" });
+  });
+
+  it("rejects empty string memo with reason 'missing'", () => {
+    expect(validateDepositMemo("")).toEqual({ valid: false, reason: "missing" });
+  });
+
+  it("rejects a memo longer than 28 bytes with reason 'invalid_format'", () => {
+    expect(validateDepositMemo("a".repeat(29))).toEqual({ valid: false, reason: "invalid_format" });
+  });
+
+  it("accepts a memo that is exactly 28 bytes", () => {
+    const memo = "a".repeat(28);
+    expect(validateDepositMemo(memo)).toEqual({ valid: true, memo });
+  });
+});
+
 describe("fetchDepositEvents", () => {
   beforeEach(() => {
     vi.clearAllMocks();
